@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_aws_ecr_suppression.dart';
 
@@ -48,43 +47,54 @@ Future<T> tracedAwsECR<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_aws_ecr');
   final span = t.startSpan('ecr $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('rpc.system', 'aws-api');
-    span.setStringAttribute('rpc.service', 'ECR');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.system', 'aws-api')]));
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.service', 'ECR')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.registryId != null) {
-        span.setStringAttribute('aws.ecr.registry.id', res.registryId!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('aws.ecr.registry.id', res.registryId!)]));
       }
       if (res.repository != null) {
-        span.setStringAttribute('aws.ecr.repository', res.repository!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('aws.ecr.repository', res.repository!)]));
       }
       if (res.imageDigest != null) {
-        span.setStringAttribute('container.image.id', res.imageDigest!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('container.image.id', res.imageDigest!)]));
       }
       if (res.imageTag != null) {
-        span.setStringAttribute('container.image.tag', res.imageTag!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('container.image.tag', res.imageTag!)]));
       }
       if (res.imageSize != null) {
-        span.setIntAttribute('container.image.size', res.imageSize!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('container.image.size', res.imageSize!)]));
       }
       if (res.region != null) {
-        span.setStringAttribute('cloud.region', res.region!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('cloud.region', res.region!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('ecr.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('ecr.error.code', res.errorCode!)]));
       }
-      final fail =
-          res.errorCode != null ||
+      final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-          ErrorResource.errorType.key,
-          res.errorCode ?? 'ecr.error',
-        );
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+            ErrorResource.errorType.key,
+            res.errorCode ?? 'ecr.error',
+          )
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
