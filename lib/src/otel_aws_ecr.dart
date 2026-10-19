@@ -6,6 +6,7 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'otel_aws_ecr_suppression.dart';
 
 class AwsECRResult {
+  /// Creates a result.
   const AwsECRResult({
     this.registryId,
     this.repository,
@@ -29,8 +30,13 @@ class AwsECRResult {
   final String? errorMessage;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class AwsECRCallResult<T> {
+  /// Creates a call result.
   const AwsECRCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final AwsECRResult? result;
 }
